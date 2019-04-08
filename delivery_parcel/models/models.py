@@ -74,7 +74,7 @@ class ParcelproConfig(models.Model):
         # crt_data = {
         #         "ApartmentSuite":"",
         #         "City":"Nadiad",
-        #         "CompanyName":"Darshan Patel",
+        #         "CompanyName":"vimal gupta",
         #         "ContactId":"NOID",
         #         "Country":"US",
         #         "CustomerId":"",
@@ -105,7 +105,7 @@ class ParcelproConfig(models.Model):
         # crt_data = {
         #     "ApartmentSuite": "",
         #     "City": "Downey",
-        #     "CompanyName": "Darshan",
+        #     "CompanyName": "vimal",
         #     "ContactId": "NOID",
         #     "ContactType": "11",
         #     "Country": "US",
