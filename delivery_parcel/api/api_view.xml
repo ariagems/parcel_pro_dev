@@ -1,0 +1,52 @@
+<odoo>
+    <data>
+
+
+        <record id="parcelpro_api_view_form" model="ir.ui.view">
+            <field name="name">Parcelpro API Form</field>
+            <field name="model">parcelpro.api</field>
+            <field name="arch" type="xml">
+                <form string="list test">
+                    <sheet>
+                        <group>
+                            <field name="api_uname"/>
+                            <field name="api_pwd"/>
+                            <field name="api_key"/>
+                        </group>
+                        <group>
+                            <button name="response_key" string="Connect API" type="object" class="oe_highlight"/>
+                        </group>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="parcelpro_api_view_tree" model="ir.ui.view">
+            <field name="name">Parcelpro API Tree</field>
+            <field name="model">parcelpro.api</field>
+            <field name="arch" type="xml">
+                <tree string="Parcelpro API Tree">
+                    <field name="api_key"/>
+                </tree>
+            </field>
+        </record>
+
+         <record id="parcelpro_api_view_action" model="ir.actions.act_window">
+            <field name="name">Parcelpro Api Action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">parcelpro.api</field>
+            <field name="view_mode">tree,form</field>
+
+        </record>
+
+
+
+
+        <menuitem id="parcelpro_api_main_menu" name="Parcel Pro" sequence="1"/>
+        <menuitem id="parcelpro_api_sub_menu" name="MailChimp Campaigns" parent="parcelpro_api_main_menu"  action="parcelpro_api_view_action" sequence="2"/>
+
+
+
+    </data>
+</odoo>
