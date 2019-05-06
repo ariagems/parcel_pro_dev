@@ -6,12 +6,15 @@
         <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='destination']" position='before'>
-                <page string="Parcel Configuration" attrs="{'invisible': [('delivery_type', '!=', 'parcel')]}">
+                <page string="Parcel Configuration" >
                     <group>
                         <group>
-                            <field name="parcel_username" attrs="{'required': [('delivery_type', '=', 'parcel')]}"/>
+                          <field name="parcel_username"/>
+                            <field name="parcel_passwd" />
+                            <field name="parcel_access_number" />
+                            <!-- <field name="parcel_username" attrs="{'required': [('delivery_type', '=', 'parcel')]}"/>
                             <field name="parcel_passwd" attrs="{'required': [('delivery_type', '=', 'parcel')]}"/>
-                            <field name="parcel_access_number" attrs="{'required': [('delivery_type', '=', 'parcel')]}"/>
+                            <field name="parcel_access_number" attrs="{'required': [('delivery_type', '=', 'parcel')]}"/> -->
                             <!--1<field name="ups_access_number" attrs="{'required': [('delivery_type', '=', 'ups')]}"/>
                             <field name="ups_default_service_type" attrs="{'required': [('delivery_type', '=', 'ups')]}"/> -->
                         </group>

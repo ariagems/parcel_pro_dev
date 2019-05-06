@@ -1,0 +1,21 @@
+<odoo>
+  <data>
+     <record id="view_order_form_parcel_pro" model="ir.ui.view">
+        <field name="name">sale.order.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+          <notebook position='inside'>
+            <page string='Parcel Pro'>
+                  <group col="4">
+                  	<field name='QuoteId'/>
+                  	<field name='ShipmentId'/>
+                  	<field name='ServiceCode'/>
+                  	<field name='ShipmentId'/>
+                  </group>
+            </page>
+          </notebook>
+        </field>
+    </record>
+ </data>
+</odoo>

@@ -26,9 +26,13 @@
     'data': [
         # 'security/ir.model.access.csv',
         # 'data/delivery_parcel_data.xml',
+        'data/ir_sequence_data.xml',
         'api/api_view.xml',
         'views/views.xml',
         'views/templates.xml',
+        'views/res_partner_view.xml',
+        'views/sale_view.xml',
+
     ],
     # only loaded in demonstration mode
     'demo': [

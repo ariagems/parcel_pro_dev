@@ -12,6 +12,7 @@
                             <field name="api_uname"/>
                             <field name="api_pwd"/>
                             <field name="api_key"/>
+                            <field name="session_id"/>
                         </group>
                         <group>
                             <button name="response_key" string="Connect API" type="object" class="oe_highlight"/>
@@ -45,6 +46,32 @@
 
         <menuitem id="parcelpro_api_main_menu" name="Parcel Pro" sequence="1"/>
         <menuitem id="parcelpro_api_sub_menu" name="MailChimp Campaigns" parent="parcelpro_api_main_menu"  action="parcelpro_api_view_action" sequence="2"/>
+
+
+        <record id="parcelpro_get_contacts_wizard_view" model="ir.ui.view">
+            <field name="name">ParcelPro Contacts Wizard</field>
+            <field name="model">contacts.wizard</field>
+            <field name="arch" type="xml">
+                <form string="ParcelPro Contacts">
+                    <footer>
+                        <button type="object" name="get_parcelpro_contacts" string="Get Contacts" class="oe_highlight"/>
+                        <span style="color:white;">or</span>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="parcelpro_get_contacts_wizard_action_id" model="ir.actions.act_window">
+            <field name="name">Sync ParcelPro Contacts Wizard</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">contacts.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="get_contact_sub_menu" name="Sync Contacts" parent="parcelpro_api_main_menu" action="parcelpro_get_contacts_wizard_action_id" sequence="3"/>
 
 
 
