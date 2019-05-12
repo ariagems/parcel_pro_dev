@@ -14,7 +14,9 @@
     'data': [
         'views/parcel_configuration_view.xml',
         'views/res_partner_view.xml',
+        'views/res_users_view.xml',
         'views/sale_order_view.xml',
+        'wizard/parcel_pro_api_wizard_view.xml',
         'data/parcel_configuration_data.xml',
         'security/ir.model.access.csv',
     ],

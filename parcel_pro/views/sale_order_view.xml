@@ -9,9 +9,10 @@
             <page string='Parcel Pro'>
                   <group col="4">
                   	<field name='QuoteId'/>
-                  	<field name='ShipmentId'/>
                   	<field name='ServiceCode'/>
+                  	<field name='PackageCode'/>
                   	<field name='ShipmentId'/>
+                  	<field name='TrackingNumber'/>
                   </group>
             </page>
           </notebook>

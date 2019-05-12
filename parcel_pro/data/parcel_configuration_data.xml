@@ -3,7 +3,7 @@
 
     <!-- Parcel Configuration -->
 
-    <record id="parcel_config_data" model="parcel.configuration">
+    <record id="parcel_config_data2" model="parcel.configuration">
         <field name="name">API Configuration</field>
         <field name="user_name">RE4824-8307</field>
         <field name="password">7NW8rQzV63mM4cwkEen</field>

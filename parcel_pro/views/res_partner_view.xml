@@ -5,9 +5,8 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <field name='name' position='replace'>
-                <field name="name" default_focus="1" placeholder="Name"/>
-                <field name="FirstName" default_focus="1" placeholder="First Name" />
+            <field name='name' position='after'>
+                <field name="FirstName"  placeholder="First Name" />
                 <field name="LastName"  placeholder="Last Name" />
                 <field name="NickName"  placeholder="Nick Name" />
             </field>
@@ -31,6 +30,7 @@
                    	   <field name='IsUserDefault'/>
                    	   <field name='IsExpress'/>
                    	   <field name='IsResidential'/>
+                   	   <field name='FromParcelPro'/>
                    	 </group>
                    </group>
 	             </page>
