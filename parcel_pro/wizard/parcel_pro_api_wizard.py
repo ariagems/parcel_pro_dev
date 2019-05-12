@@ -29,13 +29,13 @@ class ParcelProApiWizard(models.TransientModel):
         if self.api_type == 'generate_session':
             result = parcel_config_rec.generate_session()
         elif self.api_type == 'getgenerate_multi_contacts':
-            result = parcel_config_rec.get_contacts(self.create_contact)
+            result = parcel_config_rec.get_contacts()
         elif self.api_type == 'getgenerate_single_contact':
-            result = parcel_config_rec.get_contact(self.ContactId,self.create_contact)
+            result = parcel_config_rec.get_contact(self.ContactId)
         elif self.api_type == 'get_shipment':
             result = parcel_config_rec.get_shipment(self.ShipmentID)
         elif self.api_type == 'get_shipment_label':
-            result = parcel_config_rec.get_shipment(self.ShipmentID)
+            result = parcel_config_rec.get_shipment_label(self.ShipmentID)
         elif self.api_type == 'get_high_value_queue':
             result = parcel_config_rec.get_high_value_queue(self.QuoteId)
         print("=== Final Result =====",result)

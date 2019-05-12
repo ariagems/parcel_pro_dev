@@ -14,10 +14,10 @@
                     <group col="4">
                         <field name="api_type" />
                         <field name="date" />
-                        <field name="create_contact" attrs="{'invisible': [('api_type', 'not in', ('getgenerate_multi_contacts','getgenerate_single_contact'))]}"/>
                         <field name="ContactId" attrs="{'invisible': [('api_type', 'not in', ('getgenerate_single_contact'))],'required': [('api_type', 'in', ('getgenerate_single_contact'))]}"/>
                         <field name="QuoteId" attrs="{'invisible': [('api_type', 'not in', ('get_high_value_queue'))],'required': [('api_type', 'in', ('get_high_value_queue'))]}"/>
                         <field name="ShipmentID" attrs="{'invisible': [('api_type', 'not in', ('get_shipment','get_shipment_label'))],'required': [('api_type', 'in', ('get_shipment','get_shipment_label'))]}"/>
+                        <field name="create_contact" invisible="1" attrs="{'invisible': [('api_type', 'not in', ('getgenerate_multi_contacts','getgenerate_single_contact'))]}"/>
                     </group>
                     <footer>
                         <button name="action_fetch_data"

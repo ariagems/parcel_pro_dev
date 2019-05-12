@@ -13,6 +13,7 @@ class SaleOrder(models.Model):
     TrackingNumber=fields.Char('TrackingNumber')
     FromParcelPro = fields.Boolean('From Parcel Pro')
     IsCod = fields.Boolean('IsCod')
+    create_contact = fields.Boolean('Create/Update Contact',default=True)
     PickUpDate = fields.Date('PickUpDate')
     _sql_constraints = [
         ('unique_QuoteId', 'UNIQUE ("QuoteId")', 'QuoteId must be unique!'),
@@ -23,7 +24,11 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).action_confirm()
         for order in self:
             if order.carrier_id.name == 'Parcel Pro':
-                self.env['parcel.configuration'].generate_quotation(order)
+                if self.create_contact:
+                    print("===",self.create_contact)
+                    self.env['parcel.configuration'].post_contact(order,True)
+                else:
+                    self.env['parcel.configuration'].post_quotation(order,order.partner_id.ContactId,order.partner_shipping_id.ContactId)
         return res
 
 
