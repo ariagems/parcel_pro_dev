@@ -1,0 +1,54 @@
+<odoo>
+    <data>
+        <record id="view_order_form_parcel_pro" model="ir.ui.view">
+            <field name="name">sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <notebook position='inside'>
+                    <page string='Parcel Pro'>
+                        <group col="4">
+                            <field name='QuoteId'/>
+                            <field name='ServiceCode'/>
+                            <field name='PackageCode'/>
+                            <field name='ShipmentId'/>
+                            <field name='TrackingNumber'/>
+                            <field name='create_contact' invisible="1"/>
+                        </group>
+                        <group col="4">
+                            <field name="estimator_ids" nolabel="1">
+                                <tree string="Estimators" readonly="1">
+                                    <field name="EstimatorHeaderID" required="1"/>
+                                    <field name="AccessorialsCost"/>
+                                    <field name="BaseRate"/>
+                                    <field name="BusinessDaysInTransit"/>
+                                    <field name="DeliveryByTime"/>
+                                </tree>
+                                <form string="Estimators" editable="top">
+                                    <group col="4">
+                                        <field name="EstimatorHeaderID" required="1"/>
+                                        <field name="AccessorialsCost"/>
+                                        <field name="BaseRate"/>
+                                        <field name="BusinessDaysInTransit"/>
+                                        <field name="DeliveryByTime"/>
+                                    </group>
+                                    <group>
+                                        <field name="estimator_detail_ids" nolabel="1" readonly="1">
+                                            <tree string="Estimators Detail" >
+                                                <field name="EstimatorDetailID" required="1"/>
+                                                <field name="AccessorialDescription"/>
+                                                <field name="AccessorialFee"/>
+                                            </tree>
+                                        </field>
+
+                                    </group>
+                                </form>
+                            </field>
+
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+    </data>
+</odoo>

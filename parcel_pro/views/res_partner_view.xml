@@ -1,0 +1,44 @@
+<odoo>
+  <data>
+     <record id="view_partner_form_pp" model="ir.ui.view">
+        <field name="name">res.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+			<field name='mobile' position='replace'>
+				<field name="mobile"  required="1" />
+			</field>
+            <field name='name' position='after'>
+                <field name="FirstName"  placeholder="First Name" />
+                <field name="LastName"  placeholder="Last Name" />
+                <field name="NickName"  placeholder="Nick Name" />
+            </field>
+        	  <field name='email' position='after'>
+        	  	<field name='FaxNo'/>
+        	  	<field name='State'/>
+        	  	<field name='Country'/>
+        	  </field>
+        	<notebook position='inside'>
+	             <page string='Parcel Pro'>
+                   <group>
+                     <group>
+                   	   <field name='ContactId'/>
+                   	   <field name='CustomerId'/>
+                   	   <field name='ApartmentSuite'/>
+                   	   <field name='ProvinceRegion'/>
+                   	   <field name='ContactType'/>
+                     </group>	
+                     <group>
+                   	   <field name='UPSPickUpType'/>
+                   	   <field name='IsUserDefault'/>
+                   	   <field name='IsExpress'/>
+                   	   <field name='IsResidential'/>
+                   	   <field name='FromParcelPro'/>
+                   	 </group>
+                   </group>
+	             </page>
+        	</notebook>
+        </field>
+      </record>
+   </data>
+</odoo>

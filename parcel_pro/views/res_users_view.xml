@@ -1,0 +1,17 @@
+<odoo>
+  <data>
+     <record id="view_users_form_parcel_pro" model="ir.ui.view">
+            <field name="name">res.users.form.parcel.pro</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="action_id" position="after">
+                        <field name="UserId" />
+                        <field name="FromParcelPro" />
+                    </field>
+                </data>
+            </field>
+        </record>
+   </data>
+</odoo>

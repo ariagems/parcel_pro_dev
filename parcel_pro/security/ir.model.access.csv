@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_parcel_configuration_user,access.parcel.configuration.user,model_parcel_configuration,sales_team.group_sale_salesman,1,1,0,0
+access_parcel_configuration_manager,access.parcel.configuration.manager,model_parcel_configuration,sales_team.group_sale_manager,1,1,1,0
+access_parcel_pro_api_user,access.parcel.pro.user,model_parcel_pro_api,sales_team.group_sale_salesman,1,1,0,0
+access_parcel_pro_api_manager,access.parcel.pro.manager,model_parcel_pro_api,sales_team.group_sale_manager,

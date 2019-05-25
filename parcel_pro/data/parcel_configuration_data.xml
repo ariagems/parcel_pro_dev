@@ -1,0 +1,14 @@
+<odoo>
+<data noupdate="1">
+
+    <!-- Parcel Configuration -->
+
+    <record id="parcel_config_data2" model="parcel.configuration">
+        <field name="name">API Configuration</field>
+        <field name="user_name">RE4824-8307</field>
+        <field name="password">7NW8rQzV63mM4cwkEen</field>
+        <field name="api_key">BFC4EED5-48F5-461B-B14A-2C1860EDD3B7</field>
+    </record>
+
+ </data>
+</odoo>
