@@ -109,131 +109,115 @@ class ParcelConfiguration(models.Model):
 
     # Post Contact
 
-    def post_contact(self,order,post_quotation):
+    def post_contact(self,partner):
         session = self.get_session()
-        print("============",order.partner_id.phone)
-        # data_dict_partner = {
-        #     "ApartmentSuite": order.partner_id.ApartmentSuite or "",
-        #     "City": order.partner_id.city or "",
-        #     "CompanyName": "",
-        #     "ContactId": "NOID",
-        #     "Country": order.partner_id.Country or order.partner_id.country_id.code or "",
-        #     "CustomerId": "",
-        #     "Email": order.partner_id.email or "",
-        #     "FaxNo": order.partner_id.FaxNo or "",
-        #     "FirstName": order.partner_id.FirstName or "",
-        #     "IsExpress": False,
-        #     "IsResidential": True,
-        #     "LastName": order.partner_id.LastName or "",
-        #     "NickName": order.partner_id.NickName or "",
-        #     "State": order.partner_id.State or order.partner_id.state_id.code or "",
-        #     "StreetAddress": str(order.partner_id.street) + ',' + str(order.partner_id.street2),
-        #     "TelephoneNo": order.partner_id.mobile or "",
-        #     "Zip": order.partner_id.zip or ""
-        # }
-
+        print("============",partner.name)
         data_dict_partner = {
-            "ApartmentSuite": order.partner_id.ApartmentSuite,
-            "City": order.partner_id.city,
-            "CompanyName": "",
-            "ContactId": "NOID",
-            "Country": order.partner_id.Country or order.partner_id.country_id.code,
+            "ApartmentSuite": partner.ApartmentSuite,
+            "City": partner.city,
+            "CompanyName": partner.company_id.name,
+            "ContactId": partner.ContactId or "NOID" ,
+            "Country": partner.Country,
             "CustomerId": "",
-            "Email": order.partner_id.email,
-            "FaxNo": order.partner_id.FaxNo or "",
-            "FirstName": order.partner_id.FirstName,
-            "IsExpress": True,
-            "IsResidential": False,
-            "LastName": order.partner_id.LastName,
-            "NickName": order.partner_id.NickName,
-            "State": order.partner_id.State or order.partner_id.state_id.code,
-            "StreetAddress": str(order.partner_id.street),
-            "TelephoneNo": order.partner_id.mobile,
-            "Zip": order.partner_id.zip
+            "Email": partner.email,
+            "FaxNo": partner.FaxNo or "",
+            "FirstName": partner.FirstName,
+            "IsExpress": partner.IsExpress,
+            "IsResidential": partner.IsResidential,
+            "LastName": partner.LastName,
+            "NickName": partner.NickName,
+            "State": partner.State,
+            "StreetAddress": str(partner.street),
+            "TelephoneNo": partner.mobile,
+            "Zip": partner.zip,
+            "ContactType":partner.ContactType
         }
-
-        data_dict_shipping_partner = {
-            "ApartmentSuite": order.partner_shipping_id.ApartmentSuite,
-            "City": order.partner_shipping_id.city,
-            "CompanyName": "",
-            "ContactId": "NOID",
-            "Country": order.partner_shipping_id.Country or order.partner_shipping_id.country_id.code,
-            "CustomerId": "",
-            "Email": order.partner_shipping_id.email,
-            "FaxNo": order.partner_shipping_id.FaxNo or "",
-            "FirstName": order.partner_shipping_id.FirstName,
-            "IsExpress": True,
-            "IsResidential": False,
-            "LastName": order.partner_shipping_id.LastName,
-            "NickName": order.partner_shipping_id.NickName,
-            "State": order.partner_shipping_id.State or order.partner_shipping_id.state_id.code,
-            "StreetAddress": str(order.partner_shipping_id.street),
-            "TelephoneNo": order.partner_shipping_id.mobile,
-            "Zip": order.partner_shipping_id.zip
-        }
+        print("++++++",partner.ContactType,type(partner.ContactType))
+        if not partner.ContactType or ( partner.ContactType != '3' and partner.ContactType != '11' ):
+            raise ValidationError(_('Contact Type should be selected as Location or Addressbook'))
         url = 'https://apibeta.parcelpro.com/v1/location?sessionID=' + str(session)
+        if partner.ContactType == '3':
+            url = 'https://apibeta.parcelpro.com/v1/location?sessionID=' + str(session)
+        elif partner.ContactType == '11':
+            data_dict_partner["UserId"]=partner.UserId
+            # if partner.ContactId:
+            #     data_dict_partner["ContactId"] = partner.ContactId
+            #     url = 'https://apibeta.parcelpro.com/v1/addressbook/'+ str(data_dict_partner["ContactId"])  +'?sessionID=' + str(session)
+            # else:
+            url = 'https://apibeta.parcelpro.com/v1/addressbook?sessionID=' + str(session)
         result = self.get_response(url, "POST", data_dict_partner)
-        print("Final Result...........................",result,result.get("ContactId"))
-        result_shipping = self.get_response(url, "POST", data_dict_shipping_partner)
-        print("result_shipping........................",result_shipping,result_shipping.get("ContactId"))
-        if not result.get("ContactId") or result.get("ContactId")=="NOID" or not result_shipping.get('ContactId') or result_shipping.get('ContactId')=="NOID":
-            raise ValidationError(_('ContactId not created on Parcel Pro for custom or for shipping address'))
-        order.partner_id.write({'CustomerId':result.get('CustomerId'),'ContactId':result.get('ContactId'),'ApartmentSuite':result.get('ApartmentSuite')})
-        order.partner_shipping_id.write({'CustomerId':result_shipping.get('CustomerId'),'ContactId':result_shipping.get('ContactId'),'ApartmentSuite':result_shipping.get('ApartmentSuite')})
-        if post_quotation:
-            self.post_quotation(order,result.get("ContactId"),result_shipping.get('ContactId'))
+        print("result..............",result)
+        if not result.get("ContactId") or result.get("ContactId")=="NOID" :
+            raise ValidationError(_('ContactId not created on Parcel Pro'))
+        if result.get('ApartmentSuite')=='false':
+            ApartmentSuite = ""
+        else:
+            ApartmentSuite = result.get('ApartmentSuite')
+        partner.write({'contact_created':True,'CustomerId':result.get('CustomerId'),'ContactId':result.get('ContactId'),'ApartmentSuite':ApartmentSuite})
+        return result
+
 
     # Post Quotation
 
     def post_quotation(self,order):
         session = self.get_session()
+        CodAmount = 0
+        if order.IsCod:
+            CodAmount = order.amount_total
+        InsuredValue = 0
+        for line in order.order_line:
+            if line.product_id.type=='service':
+                InsuredValue = line.price_unit
+                break
+        if InsuredValue <= 0:
+            raise ValidationError(_('InsuredValue should be greater than 0'))
 
         data_dict = {
-                           "ShipmentId":"NOID",
-                           "QuoteId":"",
-                           "CustomerId":"NOID",
-                           "UserId":"NOID",
-                           "ShipToResidential":False,
-                           "ServiceCode":"01-DOM",
-                           "CarrierCode":2,
-                           "ShipTo":{
-                              "ContactId":"NOID",
+                    "ShipmentId":"NOID",
+                    "QuoteId":"",
+                    "CustomerId":"NOID",
+                    "UserId":0,
+                    "ShipToResidential":order.ShipToResidential,
+                    "ServiceCode":str(order.ServiceCode.name),
+                    "CarrierCode":int(order.CarrierCode),
+                    "ShipTo": {
+                      "ContactId":order.partner_shipping_id.ContactId or "NOID",
+                      "CustomerId":"",
+                      "UserId":"",
+                      "ContactType":order.partner_shipping_id.ContactType,
+                      "CompanyName":order.company_id.name,
+                      "FirstName":order.partner_shipping_id.FirstName,
+                      "LastName":order.partner_shipping_id.LastName,
+                      "StreetAddress":order.partner_shipping_id.street,
+                      "ApartmentSuite":order.partner_shipping_id.ApartmentSuite or "",
+                      "ProvinceRegion":order.partner_shipping_id.ProvinceRegion,
+                      "City":order.partner_shipping_id.city,
+                      "State":order.partner_shipping_id.State,
+                      "Country":order.partner_shipping_id.Country,
+                      "Zip":order.partner_shipping_id.zip,
+                      "TelephoneNo":order.partner_shipping_id.mobile,
+                      "FaxNo":order.partner_shipping_id.FaxNo or "",
+                      "Email":order.partner_shipping_id.email or "",
+                      "NickName":order.partner_shipping_id.NickName or "",
+                      "IsExpress":order.partner_shipping_id.IsExpress,
+                      "IsResidential":order.partner_shipping_id.IsResidential,
+                      "IsUserDefault":order.partner_shipping_id.IsUserDefault,
+                      "UPSPickUpType":order.partner_shipping_id.UPSPickUpType,
+                      # "TotalContacts":"0"
+                    },
+                    "UpdateAddressBook":order.UpdateAddressBook,
+                    "NotifyRecipient":order.NotifyRecipient,
+                    "ShipFrom":{
+                              "ContactId":order.partner_id.ContactId or "NOID",
                               "CustomerId":"",
                               "UserId":"",
-                              "ContactType":11,
-                              "CompanyName":"Test Company",
-                              "FirstName":order.partner_shipping_id.FirstName,
-                              "LastName":order.partner_shipping_id.LastName,
-                              "StreetAddress":order.partner_shipping_id.street,
-                              "ApartmentSuite":order.partner_shipping_id.ApartmentSuite or "",
-                              "ProvinceRegion":"",
-                              "City":order.partner_shipping_id.city,
-                              "State":order.partner_shipping_id.State,
-                              "Country":order.partner_shipping_id.Country,
-                              "Zip":order.partner_shipping_id.zip,
-                              "TelephoneNo":order.partner_shipping_id.mobile,
-                              "FaxNo":order.partner_shipping_id.FaxNo or "",
-                              "Email":order.partner_shipping_id.email or "",
-                              "NickName":order.partner_shipping_id.NickName or "",
-                              "IsExpress":False,
-                              "IsResidential":False,
-                              "IsUserDefault":False,
-                              "UPSPickUpType":0,
-                              "TotalContacts":"0"
-                           },
-                           "UpdateAddressBook":False,
-                           "NotifyRecipient":False,
-                           "ShipFrom":{
-                              "ContactId":"NOID",
-                              "CustomerId":"",
-                              "UserId":"",
-                              "ContactType":3,
-                              "CompanyName":"Acme Jewelry",
+                              "ContactType":order.partner_id.ContactType,
+                              "CompanyName":order.company_id.name,
                               "FirstName":order.partner_id.FirstName,
                               "LastName":order.partner_id.LastName,
                               "StreetAddress":order.partner_id.street,
                               "ApartmentSuite":order.partner_id.ApartmentSuite or "",
-                              "ProvinceRegion":"",
+                              "ProvinceRegion":order.partner_id.ProvinceRegion,
                               "City":order.partner_id.city,
                               "State":order.partner_id.State,
                               "Country":order.partner_id.Country,
@@ -242,66 +226,65 @@ class ParcelConfiguration(models.Model):
                               "FaxNo":order.partner_id.FaxNo or "",
                               "Email":order.partner_id.email or "" ,
                               "NickName":order.partner_id.NickName or "",
-                              "IsExpress":False,
-                              "IsResidential":False,
-                              "IsUserDefault":False,
-                              "UPSPickUpType":0,
-                              "TotalContacts":"0"
-                           },
-                           "ShipDate":"2019-05-30",
-                           "PackageCode":"MEDIUM BOX",
-                           "Height":0,
-                           "Width":0,
-                           "Length":0,
-                           "Weight":10.0,
-                           "InsuredValue":20.0,
-                           "IsSaturdayPickUp":False,
-                           "IsSaturdayDelivery":False,
-                           "IsDeliveryConfirmation":False,
-                           "IsCod":False,
-                           "CodAmount":0.0,
-                           "IsSecuredCod":False,
-                           "IsRegularPickUp":False,
-                           "IsDropoff":True,
-                           "IsPickUpRequested":False,
-                           "IsSmartPickUp":False,
-                           "PickUpContactName":"",
-                           "PickUpTelephone":"",
-                           "PickUpAtHour":"",
-                           "PickUpAtMinute":"",
-                           "PickUpByHour":"",
-                           "PickUpByMinute":"",
-                           "PickUpDate":"",
-                           "DispatchConfirmationNumber":"",
-                           "DispatchLocation":"",
-                           "NotifySender":False,
-                           "ReferenceNumber":"",
-                           "TrackingNumber":"",
-                           "CustomerReferenceNumber":"",
-                           "IsDirectSignature":False,
-                           "IsThermal":True,
-                           "IsMaxCoverageExceeded":False,
-                           "Estimator":[
-                           ],
-                           "LabelImage":None,
-                           "IsBillToThirdParty":False,
-                           "BillToThirdPartyPostalCode":"",
-                           "BillToAccount":"",
-                           "IsShipFromRestrictedZip":False,
-                           "IsShipToRestrictedZip":False,
-                           "IsShipToHasRestrictedWords":False,
-                           "IsShipFromHasRestrictedWords":False,
-                           "IsHighValueShipment":False,
-                           "IsHighValueReport":False,
-                           "ReceivedBy":"",
-                           "ReceivedTime":"",
-                           "TotalShipments":"0"
-                        }
+                              "IsExpress":order.partner_id.IsExpress,
+                              "IsResidential":order.partner_id.IsResidential,
+                              "IsUserDefault":order.partner_id.IsUserDefault,
+                              "UPSPickUpType":order.partner_id.UPSPickUpType,
+                              # "TotalContacts":"0"
+                    },
+                    "ShipDate":order.ShipDate,
+                    "PackageCode":str(order.PackageCode.name),
+                    "Height":float(order.Height) or 0,
+                    "Width":float(order.Width) or 0,
+                    "Length":float(order.Length) or 0,
+                    "Weight":float(order.Weight) or 0,
+                    "InsuredValue":InsuredValue or 0,
+                    "InsuredValueThreshold":order.InsuredValueThreshold or "0",
+                    "InsuredValueMultiplier":order.InsuredValueMultiplier or "0",
+                    "IsSaturdayPickUp":order.IsSaturdayPickUp,
+                    "IsSaturdayDelivery":order.IsSaturdayDelivery,
+                    "IsDeliveryConfirmation":order.IsDeliveryConfirmation,
+                    "IsCod":order.IsCod,
+                    "CodAmount":CodAmount,
+                    "IsSecuredCod":order.IsSecuredCod,
+                    "IsRegularPickUp":order.IsRegularPickUp,
+                    "IsDropoff":order.IsDropoff,
+                    "IsPickUpRequested":order.IsPickUpRequested,
+                    "IsSmartPickUp":order.IsSmartPickUp,
+                    "PickUpContactName":str(order.PickUpContactName) or "",
+                    "PickUpTelephone":order.PickUpTelephone or "",
+                    "PickUpAtHour":order.PickUpAtMinute or "",
+                    "PickUpAtMinute":order.PickUpAtMinute or "",
+                    "PickUpByHour":order.PickUpByHour or "",
+                    "PickUpByMinute":order.PickUpByMinute or "",
+                    "PickUpDate": order.PickUpDate,
+                    "DispatchConfirmationNumber":order.DispatchConfirmationNumber or "",
+                    "DispatchLocation":order.DispatchLocation,
+                    "NotifySender":order.NotifySender,
+                    "ReferenceNumber":order.ReferenceNumber,
+                    "TrackingNumber":"",
+                    "CustomerReferenceNumber":order.CustomerReferenceNumber,
+                    "IsDirectSignature":order.IsDirectSignature,
+                    "IsThermal":order.IsThermal,
+                    "IsMaxCoverageExceeded":order.IsMaxCoverageExceeded,
+                    "Estimator":[],
+                    "LabelImage":None,
+                    "IsBillToThirdParty":order.IsBillToThirdParty,
+                    "BillToThirdPartyPostalCode":order.BillToThirdPartyPostalCode or "",
+                    "BillToAccount":order.BillToAccount,
+                    "IsShipFromRestrictedZip":order.IsShipFromRestrictedZip,
+                    "IsShipToRestrictedZip":order.IsShipToRestrictedZip,
+                    "IsShipToHasRestrictedWords":order.IsShipFromHasRestrictedWords,
+                    "IsShipFromHasRestrictedWords":False,
+                    "IsHighValueShipment":False,
+                    "IsHighValueReport":False,
+                    "ReceivedBy":"",
+                    "ReceivedTime":"",
+                    "TotalShipments":"0"
+                    }
 
-        # data_dict["ShipFrom"]["ContactId"] = ContactId
-        # data_dict["ShipTo"]["ContactId"] = ContactId_shipping
-        # today_date = datetime.datetime.utcnow().date()
-        # data_dict["ShipDate"] = str(today_date)
+        print("^^^^^^^^",order.ShipDate)
+
         if session:
             url = 'https://apibeta.parcelpro.com/v1/quote?sessionID=' + session
             result = self.get_response(url, "POST", data_dict)
@@ -309,19 +292,16 @@ class ParcelConfiguration(models.Model):
             # headers = {"content-type": "application/json"}
             # response = requests.post(url, data=param_data, headers=headers)
             # result = json.loads(response.text)
-            print("==result==============", result)
-            print("Contact Id...", result["ShipFrom"]["ContactId"],result["ShipTo"]["ContactId"])
             if not result.get("QuoteId"):
                 raise ValidationError(_('QuoteId not created on Parcel Pro '))
             print("***",result.get('IsHighValueShipment'))
+
             if result.get('IsHighValueShipment'):
                 url = 'https://apibeta.parcelpro.com/v1/highvalue/' + result.get("QuoteId") + '?sessionID=' + session
-                result = self.get_response(url, "POST", data_dict)
-                print("== result  high value post ====",result)
+                result1 = self.get_response(url, "POST", data_dict)
+                print("== result  high value post ====",result1)
             order.write({'QuoteId':result.get("QuoteId"),'IsHighValueShipment':result.get("IsHighValueShipment"),
-                         'QuoteIdCreated':True,
-                         'ServiceCode':result.get("ServiceCode"),
-                         'PackageCode':result.get("PackageCode")})
+                         'QuoteIdCreated':True})
             for estimator in result.get("Estimator"):
                 estimator_rec = self.env['estimator'].create({'AccessorialsCost':estimator.get('AccessorialsCost'),
                                                         'BaseRate':estimator.get('BaseRate'),
@@ -413,12 +393,20 @@ class ParcelConfiguration(models.Model):
 
     def get_carrier_services(self,domesticonly,carriercode):
         session = self.get_session()
-        # https: // apibeta.parcelpro.com / v1 / carrierservices?domesticonly = True & carriercode = UPS & sessionID = vp5kcsyrcvhxc1ruifho2m0c
         if session:
             url = 'https://apibeta.parcelpro.com/v1/carrierservices?domesticonly=' + str(domesticonly) + '&carriercode='+ str(carriercode) + '&sessionID=' + session
             print("====", url)
             result = self.get_response(url, "GET", {})
             print("result", result)
+            carrier_service_rec = self.env["carrier.services"]
+            for r in result:
+                print("======",r)
+                print("========",r.get('CarrierCode'))
+                carrier_service_id = carrier_service_rec.search([('name','=',r.get('ServiceCode')),('CarrierCode','=',r.get('CarrierCode'))])
+                if not carrier_service_id:
+                    r['name'] = r.get('ServiceCode')
+                    r['CarrierCode'] = str(r['CarrierCode'])
+                    carrier_service_rec.create(r)
         return result
 
     # Get package types

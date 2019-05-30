@@ -6,38 +6,99 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <notebook position='inside'>
-                    <page string='Parcel Pro'>
+                    <page string='Parcel Pro' attrs="{'invisible': [('ParcelPro', '!=', True)]}">
                         <group col="4">
-                            <field name='QuoteId'/>
-                            <field name='ServiceCode'/>
-                            <field name='PackageCode'/>
-                            <field name='ShipmentId'/>
-                            <field name='TrackingNumber'/>
-                            <field name='create_contact' invisible="1"/>
+
+                            <field name='CarrierCode' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='ServiceCode' domain="[('CarrierCode', '=', CarrierCode)]"  attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='PackageCode' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='ShipDate' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name='QuoteId' readonly="1"/>
+                            <field name='ShipmentId' readonly="1"/>
+                            <field name='ReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='CustomerReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='TrackingNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='Height' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='Width' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='Length' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='Weight' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name='QuoteIdCreated' readonly="1"/>
+                            <field name='ParcelPro' invisible="1"/>
+                            <field name='ShipToResidential' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name='IsCod' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsSecuredCod" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsHighValueShipment" readonly="1"/>
+                            <field name="IsHighValueReport" readonly="1"/>
+
+                            <field name="InsuredValueThreshold"/>
+                            <field name="InsuredValueMultiplier"/>
+
+                            <field name="NotifyRecipient" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="NotifySender" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="IsSaturdayPickUp" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsSaturdayDelivery" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsDeliveryConfirmation" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="IsRegularPickUp" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsDropoff" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="IsSmartPickUp" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="IsPickUpRequested" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpContactName" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpTelephone" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpAtHour" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpAtMinute" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpByHour" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpByMinute" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="PickUpDate" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="DispatchConfirmationNumber" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="DispatchLocation" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="IsDirectSignature" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsThermal" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsMaxCoverageExceeded" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsBillToThirdParty" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="BillToThirdPartyPostalCode" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="BillToAccount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsShipFromRestrictedZip" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsShipToRestrictedZip" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsShipToHasRestrictedWords" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="IsShipFromHasRestrictedWords" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="ReceivedBy" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="ReceivedTime" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+
                         </group>
                         <group col="4">
                             <field name="estimator_ids" nolabel="1">
-                                <tree string="Estimators" readonly="1">
+                                <tree string="Estimators"  delete='false'  create='false'>
                                     <field name="EstimatorHeaderID" required="1"/>
                                     <field name="AccessorialsCost"/>
                                     <field name="BaseRate"/>
                                     <field name="BusinessDaysInTransit"/>
                                     <field name="DeliveryByTime"/>
                                 </tree>
-                                <form string="Estimators" editable="top">
+                                <form string="Estimators" >
                                     <group col="4">
-                                        <field name="EstimatorHeaderID" required="1"/>
-                                        <field name="AccessorialsCost"/>
-                                        <field name="BaseRate"/>
-                                        <field name="BusinessDaysInTransit"/>
-                                        <field name="DeliveryByTime"/>
+                                        <field name="EstimatorHeaderID" required="1" readonly="1"/>
+                                        <field name="AccessorialsCost" readonly="1"/>
+                                        <field name="BaseRate" readonly="1"/>
+                                        <field name="BusinessDaysInTransit" readonly="1"/>
+                                        <field name="DeliveryByTime" readonly="1"/>
                                     </group>
                                     <group>
                                         <field name="estimator_detail_ids" nolabel="1" readonly="1">
                                             <tree string="Estimators Detail" >
-                                                <field name="EstimatorDetailID" required="1"/>
-                                                <field name="AccessorialDescription"/>
-                                                <field name="AccessorialFee"/>
+                                                <field name="EstimatorDetailID" required="1" readonly="1"/>
+                                                <field name="AccessorialDescription" readonly="1"/>
+                                                <field name="AccessorialFee" readonly="1"/>
                                             </tree>
                                         </field>
 
@@ -50,5 +111,81 @@
                 </notebook>
             </field>
         </record>
+
+        <!--        <record id="view_order_form_with_parcel_pro" model="ir.ui.view">-->
+        <!--            <field name="name">delivery.sale.order.form.view.with_carrier</field>-->
+        <!--            <field name="model">sale.order</field>-->
+        <!--            <field name="inherit_id" ref="delivery.view_order_form_with_carrier"/>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <field name="carrier_id" position="after">-->
+        <!--                   -->
+        <!--                </field>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
+        <record id="view_delivery_carrier_parcel_pro" model="ir.ui.view">
+            <field name="name">delivery.carrier.parcel.pro.form</field>
+            <field name="model">delivery.carrier</field>
+            <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+            <field name="arch" type="xml">
+                <field name="fixed_price" position="after">
+                    <field name='parcel_pro' />
+                </field>
+            </field>
+        </record>
+
+        <!--  Service Code -->
+
+        <record id="parcel_carrier_service_tree" model="ir.ui.view">
+            <field name="name">Carrier Services</field>
+            <field name="model">carrier.services</field>
+            <field name="arch" type="xml">
+                <tree string="Carrier Services" editable="top" delete='false'>
+                    <field name="CarrierCode" required="1"/>
+                    <field name="MaxCoverage"/>
+                    <field name="name" required="1"/>
+                    <field name="ServiceCodeDesc"/>
+                    <field name="DomesticOnly"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="action_carrier_services" model="ir.actions.act_window">
+            <field name="name">Carrier Services</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">carrier.services</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="submenu_carrier_services" name="Carrier Services" parent="main_menu_parcel_config"  action="action_carrier_services" sequence="2"/>
+
+
+        <!--  Package Code -->
+
+        <record id="parcel_package_service_tree" model="ir.ui.view">
+            <field name="name">Package Services</field>
+            <field name="model">package.services</field>
+            <field name="arch" type="xml">
+                <tree string="Package Services" editable="top" delete='false'>
+                    <field name="CarrierCode" required="1"/>
+                    <field name="name" required="1"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="action_package_services" model="ir.actions.act_window">
+            <field name="name">Package Services</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">package.services</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="submenu_package_services" name="Package Services" parent="main_menu_parcel_config"  action="action_package_services" sequence="2"/>
+
+
+
+
     </data>
 </odoo>
