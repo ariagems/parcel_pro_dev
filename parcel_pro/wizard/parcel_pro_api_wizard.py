@@ -15,15 +15,15 @@ class ParcelProApiWizard(models.TransientModel):
         ('post', 'POST')], "Method",default='get',required=True)
     api_type = fields.Selection([
         ('generate_session', 'Generate Session'),
-        ('getgenerate_multi_contacts', 'Get Multiple Contacts'),
-        ('getgenerate_single_contact', 'Get Single Contact'),
-        ('get_shipment', 'Get Shipment'),
-        ('get_shipment_label', 'Get Shipment Label'),
-        ('get_high_value_queue', 'Get High Value Queue'),
-        ('get_carrier_services', 'Get Carrier Services'),
-        ('get_package_types', 'Get Package Types'),
+        # ('getgenerate_multi_contacts', 'Get Multiple Contacts'),
+        # ('getgenerate_single_contact', 'Get Single Contact'),
+        # ('get_shipment', 'Fetch Shipment Info'),
+        # ('get_shipment_label', 'Fetch Shipment Label'),
+        # ('get_high_value_queue', 'Get High Value Queue'),
+        ('get_carrier_services', 'Fetch Carrier Services'),
+        ('get_package_types', 'Fetch Package Types'),
         ('zip_code_validator', 'Zip Code Validator'),
-    ], "API Type",default="generate_session",required=True)
+    ], "Fetch Info from Parcel Pro",default="generate_session",required=True)
     create_contact = fields.Boolean('Create Contact In Database')
     ContactId = fields.Char('ContactId')
     QuoteId = fields.Char('QuoteId')
@@ -38,6 +38,8 @@ class ParcelProApiWizard(models.TransientModel):
     def action_fetch_data(self):
         result = {}
         parcel_pro_resp_rec = self.env['parcel.pro.response']
+        p_ids = parcel_pro_resp_rec.search([])
+        p_ids.unlink()
         if self.api_method == 'get':
             parcel_config_rec = self.env['parcel.configuration']
             if self.api_type == 'generate_session':
@@ -74,4 +76,6 @@ class ParcelProResponse(models.Model):
     name = fields.Char('API Name')
     message = fields.Text('Message')
     date = fields.Date('Date', default=fields.Date.context_today, readonly=True)
+
+
 

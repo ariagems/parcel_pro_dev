@@ -5,6 +5,8 @@ from odoo.exceptions import ValidationError
 import requests
 import json
 import datetime
+from datetime import date
+import base64
 
 class ParcelConfiguration(models.Model):
 
@@ -20,19 +22,21 @@ class ParcelConfiguration(models.Model):
     def get_response(self, url,type,data_dict):
         result={}
         try:
+            headers = {"content-type": "application/json"}
             if type=="GET":
-                headers = {"content-type": "application/json"}
                 response = requests.request(type, url, headers=headers)
-                result = json.loads(response.text)
             elif type =="POST":
                 param_data = json.dumps(data_dict)
                 print("Parameters in convert json.......",param_data)
                 print("url..",url)
-                headers = {"content-type": "application/json"}
+                print("===headers======",headers)
                 response = requests.post(url, data=param_data, headers=headers)
+            print("===",response.status_code)
+            if response.status_code in ( 201,200):
+                print("6666444444444")
                 result = json.loads(response.text)
         except ValidationError as e:
-            raise ValidationError(_('There is something wrong ! %s ') % e.name)
+            raise ValidationError(_('There is something wrong ! %s ') % e)
         return result
 
     def generate_session(self):
@@ -153,25 +157,48 @@ class ParcelConfiguration(models.Model):
             ApartmentSuite = ""
         else:
             ApartmentSuite = result.get('ApartmentSuite')
-        partner.write({'contact_created':True,'CustomerId':result.get('CustomerId'),'ContactId':result.get('ContactId'),'ApartmentSuite':ApartmentSuite})
+        partner.write({'contact_created':True,'CustomerId':result.get('CustomerId'),'ContactId':result.get('ContactId'),'ApartmentSuite':ApartmentSuite,"Message":"Created/Updated Successfully"})
         return result
 
 
     # Post Quotation
 
     def post_quotation(self,order):
+        p_excep = self.env['parcel.pro.exceptions']
+        ShipDate = order.ShipDate
+        current_date = date.today().strftime("%Y-%m-%d")
+
+        if order.PickUpDate and order.PickUpDate > order.ShipDate:
+            p_excep.create({'name':order.name,'api_type':'post_quotation','message':"Ship Date is less than Pick Up date."})
+            raise ValidationError(_('Ship Date should be greater than pickUp date.'))
+        if ShipDate < current_date:
+            p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "ShipDate should be greater than Current Date !"})
+            raise ValidationError(_('ShipDate should be greater than Current Date !'))
+        if order.partner_id.id == order.partner_shipping_id.id:
+            p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "Ship From and Ship To should be different location"})
+            raise ValidationError(_('Ship From and Ship To should be different location.'))
+        if order.Weight <= 0:
+            p_excep.create({'name': order.name, 'api_type': 'post_quotation','message': "Weight should be greater than 0"})
+            raise ValidationError(_('Weight should be greater than 0'))
         session = self.get_session()
         CodAmount = 0
         if order.IsCod:
             CodAmount = order.amount_total
         InsuredValue = 0
         for line in order.order_line:
-            if line.product_id.type=='service':
+            if line.product_id.type=='service' :
                 InsuredValue = line.price_unit
                 break
-        if InsuredValue <= 0:
-            raise ValidationError(_('InsuredValue should be greater than 0'))
+        # if InsuredValue <= 0:
+        #     raise ValidationError(_('InsuredValue should be greater than 0'))
 
+
+
+        print("=========",order.partner_id.ContactId)
+        if not order.partner_id.ContactId:
+            raise ValidationError(_('ShipFrom ContactId not Found ! '))
+        if not order.partner_shipping_id.ContactId:
+            raise ValidationError(_('ShipTo ContactId not not Found ! '))
         data_dict = {
                     "ShipmentId":"NOID",
                     "QuoteId":"",
@@ -182,57 +209,58 @@ class ParcelConfiguration(models.Model):
                     "CarrierCode":int(order.CarrierCode),
                     "ShipTo": {
                       "ContactId":order.partner_shipping_id.ContactId or "NOID",
-                      "CustomerId":"",
-                      "UserId":"",
-                      "ContactType":order.partner_shipping_id.ContactType,
-                      "CompanyName":order.company_id.name,
-                      "FirstName":order.partner_shipping_id.FirstName,
-                      "LastName":order.partner_shipping_id.LastName,
-                      "StreetAddress":order.partner_shipping_id.street,
-                      "ApartmentSuite":order.partner_shipping_id.ApartmentSuite or "",
-                      "ProvinceRegion":order.partner_shipping_id.ProvinceRegion,
-                      "City":order.partner_shipping_id.city,
-                      "State":order.partner_shipping_id.State,
-                      "Country":order.partner_shipping_id.Country,
-                      "Zip":order.partner_shipping_id.zip,
-                      "TelephoneNo":order.partner_shipping_id.mobile,
-                      "FaxNo":order.partner_shipping_id.FaxNo or "",
-                      "Email":order.partner_shipping_id.email or "",
-                      "NickName":order.partner_shipping_id.NickName or "",
-                      "IsExpress":order.partner_shipping_id.IsExpress,
-                      "IsResidential":order.partner_shipping_id.IsResidential,
-                      "IsUserDefault":order.partner_shipping_id.IsUserDefault,
-                      "UPSPickUpType":order.partner_shipping_id.UPSPickUpType,
+                      # "CustomerId":"",
+                      # "UserId":"",
+                      # "ContactType":order.partner_shipping_id.ContactType,
+                      # "CompanyName":order.company_id.name,
+                      # "FirstName":order.partner_shipping_id.FirstName,
+                      # "LastName":order.partner_shipping_id.LastName,
+                      # "StreetAddress":order.partner_shipping_id.street,
+                      # "ApartmentSuite":order.partner_shipping_id.ApartmentSuite or "",
+                      # "ProvinceRegion":order.partner_shipping_id.ProvinceRegion,
+                      # "City":order.partner_shipping_id.city,
+                      # "State":order.partner_shipping_id.State,
+                      # "Country":order.partner_shipping_id.Country,
+                      # "Zip":order.partner_shipping_id.zip,
+                      # "TelephoneNo":order.partner_shipping_id.mobile,
+                      # "FaxNo":order.partner_shipping_id.FaxNo or "",
+                      # "Email":order.partner_shipping_id.email or "",
+                      # "NickName":order.partner_shipping_id.NickName or "",
+                      # "IsExpress":order.partner_shipping_id.IsExpress,
+                      # "IsResidential":order.partner_shipping_id.IsResidential,
+                      # "IsUserDefault":order.partner_shipping_id.IsUserDefault,
+                      # "UPSPickUpType":order.partner_shipping_id.UPSPickUpType,
+
                       # "TotalContacts":"0"
                     },
                     "UpdateAddressBook":order.UpdateAddressBook,
                     "NotifyRecipient":order.NotifyRecipient,
                     "ShipFrom":{
                               "ContactId":order.partner_id.ContactId or "NOID",
-                              "CustomerId":"",
-                              "UserId":"",
-                              "ContactType":order.partner_id.ContactType,
-                              "CompanyName":order.company_id.name,
-                              "FirstName":order.partner_id.FirstName,
-                              "LastName":order.partner_id.LastName,
-                              "StreetAddress":order.partner_id.street,
-                              "ApartmentSuite":order.partner_id.ApartmentSuite or "",
-                              "ProvinceRegion":order.partner_id.ProvinceRegion,
-                              "City":order.partner_id.city,
-                              "State":order.partner_id.State,
-                              "Country":order.partner_id.Country,
-                              "Zip":order.partner_id.zip,
-                              "TelephoneNo":order.partner_id.mobile,
-                              "FaxNo":order.partner_id.FaxNo or "",
-                              "Email":order.partner_id.email or "" ,
-                              "NickName":order.partner_id.NickName or "",
-                              "IsExpress":order.partner_id.IsExpress,
-                              "IsResidential":order.partner_id.IsResidential,
-                              "IsUserDefault":order.partner_id.IsUserDefault,
-                              "UPSPickUpType":order.partner_id.UPSPickUpType,
+                              # "CustomerId":"",
+                              # "UserId":"",
+                              # "ContactType":order.partner_id.ContactType,
+                              # "CompanyName":order.company_id.name,
+                              # "FirstName":order.partner_id.FirstName,
+                              # "LastName":order.partner_id.LastName,
+                              # "StreetAddress":order.partner_id.street,
+                              # "ApartmentSuite":order.partner_id.ApartmentSuite or "",
+                              # "ProvinceRegion":order.partner_id.ProvinceRegion,
+                              # "City":order.partner_id.city,
+                              # "State":order.partner_id.State,
+                              # "Country":order.partner_id.Country,
+                              # "Zip":order.partner_id.zip,
+                              # "TelephoneNo":order.partner_id.mobile,
+                              # "FaxNo":order.partner_id.FaxNo or "",
+                              # "Email":order.partner_id.email or "" ,
+                              # "NickName":order.partner_id.NickName or "",
+                              # "IsExpress":order.partner_id.IsExpress,
+                              # "IsResidential":order.partner_id.IsResidential,
+                              # "IsUserDefault":order.partner_id.IsUserDefault,
+                              # "UPSPickUpType":order.partner_id.UPSPickUpType,
                               # "TotalContacts":"0"
                     },
-                    "ShipDate":order.ShipDate,
+                    "ShipDate":ShipDate,
                     "PackageCode":str(order.PackageCode.name),
                     "Height":float(order.Height) or 0,
                     "Width":float(order.Width) or 0,
@@ -282,27 +310,26 @@ class ParcelConfiguration(models.Model):
                     "ReceivedTime":"",
                     "TotalShipments":"0"
                     }
-
-        print("^^^^^^^^",order.ShipDate)
-
         if session:
+            IsHighValueShipment = False
+            IsHighValueShipmentPosted = False
             url = 'https://apibeta.parcelpro.com/v1/quote?sessionID=' + session
             result = self.get_response(url, "POST", data_dict)
-            # param_data = json.dumps(data_dict)
-            # headers = {"content-type": "application/json"}
-            # response = requests.post(url, data=param_data, headers=headers)
-            # result = json.loads(response.text)
+            # if not result.get("ShipFrom").get("ContactId") or result.get("ShipFrom").get("ContactId")=="NOID" :
+            #     raise ValidationError(_('ShipFrom ContactId not created on Parcel Pro '))
+            # if not result.get("ShipTo").get("ContactId") or result.get("ShipTo").get("ContactId")=="NOID":
+            #     raise ValidationError(_('ShipTo ContactId not created on Parcel Pro '))
             if not result.get("QuoteId"):
                 raise ValidationError(_('QuoteId not created on Parcel Pro '))
-            print("***",result.get('IsHighValueShipment'))
-
             if result.get('IsHighValueShipment'):
                 url = 'https://apibeta.parcelpro.com/v1/highvalue/' + result.get("QuoteId") + '?sessionID=' + session
-                result1 = self.get_response(url, "POST", data_dict)
-                print("== result  high value post ====",result1)
-            order.write({'QuoteId':result.get("QuoteId"),'IsHighValueShipment':result.get("IsHighValueShipment"),
-                         'QuoteIdCreated':True})
+                self.get_response(url, "POST", {})
+                IsHighValueShipment = True
+                IsHighValueShipmentPosted = True
+
+            total_shipping_charges = 0.00
             for estimator in result.get("Estimator"):
+                total_shipping_charges += estimator.get('TotalCharges')
                 estimator_rec = self.env['estimator'].create({'AccessorialsCost':estimator.get('AccessorialsCost'),
                                                         'BaseRate':estimator.get('BaseRate'),
                                                         'BusinessDaysInTransit':estimator.get('BusinessDaysInTransit'),
@@ -315,10 +342,15 @@ class ParcelConfiguration(models.Model):
                     self.env['estimator.detail'].create({'AccessorialsCost': detail.get('AccessorialsCost'),
                                                   'AccessorialFee': detail.get('AccessorialFee'),
                                                   'EstimatorDetailID': detail.get('EstimatorDetailID'),
-                                                  'estimator_id': estimator_rec.id
-                                                  })
+                                                  'estimator_id': estimator_rec.id})
+            if total_shipping_charges > 0:
+                order._create_delivery_line(order.carrier_id, total_shipping_charges)
 
-                
+            order.write({'QuoteId': result.get("QuoteId"),
+                         'QuoteIdCreated': True,
+                         'IsHighValueShipment': IsHighValueShipment,
+                         'IsHighValueShipmentPosted': IsHighValueShipmentPosted
+                         })
 
         return result
 
@@ -327,11 +359,17 @@ class ParcelConfiguration(models.Model):
     def post_shipment(self, shipment):
         session = self.get_session()
         if session:
+            data_dict = {}
             url = 'https://apibeta.parcelpro.com/v1/shipment/' + str(shipment.QuoteId) + '?sessionID=' + session
-            result = self.get_response(url, "POST", {})
-            if not result.get("ShipmentID"):
+            result = self.get_response(url, "POST", data_dict)
+            if not result.get("ShipmentId") or result.get("ShipmentId") == "NOID":
                 raise ValidationError(_('ShipmentID not created on Parcel Pro '))
-            shipment.write({'ShipmentID': result.get("ShipmentID")})
+            LabelImage = self.get_shipment(result.get("ShipmentId"))
+            shipment.write({'ShipmentId': result.get("ShipmentId"),'carrier_tracking_ref': result.get("TrackingNumber")})
+            name = "Shipping Label" + result.get("ShipmentId")
+            self.env['ir.attachment'].create(
+                {'res_model': "stock.picking", 'datas_fname': name, 'name':name  ,'datas': LabelImage.encode(),
+                 'res_id': shipment.id})
 
 
     # Get Shipment
@@ -342,20 +380,40 @@ class ParcelConfiguration(models.Model):
         session = self.get_session()
         if session:
             url = 'https://apibeta.parcelpro.com/v1/shipment/' + str(ShipmentID) + '?sessionID=' + session
-            result = self.get_response(url, "GET",{})
-        return result
+            print("url......",url)
+            try:
+                headers = {"content-type": "application/xml"}
+                response = requests.request("GET", url, headers=headers)
+                result = response.text
+                from xml.etree.ElementTree import XML
+                LabelImage = XML(result).find("LabelImage").text
+            except ValidationError as e:
+                raise ValidationError(_('There is something wrong ! %s ') % e)
+        return LabelImage
 
     # Get Shipment Label
 
-    def get_shipment_label(self, ShipmentID):
-        if not ShipmentID:
-            raise ValidationError(_('ShipmentID is required !'))
+    def get_shipment_label(self, ShipmentId):
+        if not ShipmentId:
+            raise ValidationError(_('ShipmentId is required !'))
         session = self.get_session()
         if session:
-            url = 'https://apibeta.parcelpro.com/v1/shipment/label?shipmentId=' + str(ShipmentID) + '&sessionID=' + session
+            data_dict = {}
+            url = 'https://apibeta.parcelpro.com/v1/shipment/label?shipmentId=' + str(ShipmentId) + '&sessionID=' + session
             print("====", url)
-            result = self.get_response(url, "GET",{})
-            print("result", result)
+
+            try:
+                headers = {"content-type": "application/xml"}
+                response = requests.request("GET", url, headers=headers)
+                result = response.text
+                # from xml.etree.ElementTree import XML
+                # LabelImage = XML(result).find("LabelImage").text
+            except ValidationError as e:
+                raise ValidationError(_('There is something wrong ! %s ') % e)
+
+            #
+            # result = self.get_response(url, "GET",data_dict)
+            # print("result", result)
         return result
 
     # High Value Queue
@@ -418,6 +476,15 @@ class ParcelConfiguration(models.Model):
             print("====", url)
             result = self.get_response(url, "GET", {})
             print("result", result)
+            # {'PackageTypeDesc': 'LARGE FEDEX BOX', 'PackageTypeCode': 'LARGE BOX', 'CarrierCode': 0,#  'CarrierServiceCode': '01-DOM'}
+            package_service_rec = self.env["package.services"]
+            for r in result:
+                package_service_id = package_service_rec.search(
+                    [('name', '=', r.get('PackageTypeCode')), ('CarrierCode', '=', r.get('CarrierCode'))])
+                if not package_service_id:
+                    r['name'] = r.get('PackageTypeCode')
+                    r['CarrierCode'] = str(r['CarrierCode'])
+                    package_service_rec.create(r)
         return result
 
     # ZIP Code Validator
@@ -431,3 +498,15 @@ class ParcelConfiguration(models.Model):
             result = self.get_response(url, "GET", {})
             print("result", result)
         return result
+
+class ParcelProExceptions(models.Model):
+
+    _name = "parcel.pro.exceptions"
+
+    name = fields.Char('Name')
+    api_type = fields.Selection([
+        ('post_quotation', 'Post Quotation'),
+        ('post_shipment', 'Fetch Carrier Services')], "API")
+    message = fields.Text('Exception')
+    date = fields.Date('Date', default=fields.Date.context_today, readonly=True)
+

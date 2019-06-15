@@ -9,16 +9,16 @@
                     <page string='Parcel Pro' attrs="{'invisible': [('ParcelPro', '!=', True)]}">
                         <group col="4">
 
-                            <field name='CarrierCode' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name='CarrierCode' domain="[('CarrierCode', '=', CarrierCode)]" attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='ServiceCode' domain="[('CarrierCode', '=', CarrierCode)]"  attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='PackageCode' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='ShipDate' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
 
                             <field name='QuoteId' readonly="1"/>
-                            <field name='ShipmentId' readonly="1"/>
+<!--                            <field name='ShipmentId' readonly="1"/>-->
                             <field name='ReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='CustomerReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name='TrackingNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+<!--                            <field name='TrackingNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>-->
                             <field name='Height' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='Width' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='Length' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -31,6 +31,7 @@
                             <field name='IsCod' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="IsSecuredCod" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="IsHighValueShipment" readonly="1"/>
+                            <field name="IsHighValueShipmentPosted" readonly="1"/>
                             <field name="IsHighValueReport" readonly="1"/>
 
                             <field name="InsuredValueThreshold"/>
@@ -47,6 +48,7 @@
                             <field name="IsDropoff" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
 
                             <field name="IsSmartPickUp" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="UpdateAddressBook" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
 
                             <field name="IsPickUpRequested" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="PickUpContactName" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -168,8 +170,10 @@
             <field name="model">package.services</field>
             <field name="arch" type="xml">
                 <tree string="Package Services" editable="top" delete='false'>
-                    <field name="CarrierCode" required="1"/>
-                    <field name="name" required="1"/>
+                    <field name="CarrierCode"/>
+                    <field name="name"/>
+                    <field name="PackageTypeDesc" />
+                    <field name="CarrierServiceCode" />
                 </tree>
             </field>
         </record>

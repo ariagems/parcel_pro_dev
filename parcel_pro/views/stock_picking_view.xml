@@ -1,0 +1,39 @@
+<odoo>
+    <data>
+
+        <record id="view_picking_withcarrier_out_form" model="ir.ui.view">
+            <field name="name">delivery.stock.picking_withcarrier.form.view</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//page[@name='extra']" position="after">
+                        <page string='Parcel Pro' attrs="{'invisible': [('ParcelPro', '!=', True)]}">
+                        <group col="4">
+                            <field name='CarrierCode' readonly="1"/>
+                            <field name='ServiceCode' readonly="1"/>
+                            <field name='PackageCode' readonly="1"/>
+                            <field name='ShipDate' readonly="1"/>
+                            <field name='Height' readonly="1"/>
+                            <field name='Width' readonly="1"/>
+                            <field name='Length' readonly="1"/>
+                            <field name='Weight' readonly="1"/>
+
+                            <field name='QuoteId' readonly="1"/>
+                            <field name='ShipmentId' readonly="1"/>
+                            <field name='TrackingNumber' readonly="1"/>
+                            <field name='IsHighValueShipment' readonly="1"/>
+                            <field name='IsHighValueShipmentPosted' readonly="1"/>
+                            <field name='IsHighValueShipment_Approved' readonly="1"/>
+                            <field name='IsCod' readonly="1"/>
+                            <field name='ParcelPro' readonly="1"/>
+                            <field name='ShipmentId_created' readonly="1"/>
+                        </group>
+                        </page>
+
+                    </xpath>
+                </data>
+            </field>
+        </record>
+    </data>
+</odoo>

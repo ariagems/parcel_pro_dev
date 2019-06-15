@@ -5,14 +5,14 @@ from openerp import exceptions, fields, models,api
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    NickName=fields.Char('NickName')
-    FirstName=fields.Char('FirstName')
-    LastName=fields.Char('LastName')
-    FaxNo=fields.Char('FaxNo')
-    ContactId=fields.Char('ContactId')
-    CustomerId=fields.Char('CustomerId')
-    ApartmentSuite=fields.Char('ApartmentSuite')
-    ProvinceRegion=fields.Char('ProvinceRegion')
+    NickName=fields.Char('Nick Name')
+    FirstName=fields.Char('First Name')
+    LastName=fields.Char('Last Name')
+    FaxNo=fields.Char('Fax No')
+    ContactId=fields.Char('Contact Id')
+    CustomerId=fields.Char('Customer Id')
+    ApartmentSuite=fields.Char('Apartment Suite')
+    ProvinceRegion=fields.Char('Province Region')
     ContactType = fields.Selection([
         ('0', 'Null -0'),
         ('1', 'CorporateContact-1'),
@@ -30,20 +30,15 @@ class ResPartner(models.Model):
         ('4', 'DaySpecificPickUp'),
         ('5', 'SmartPickUp'),
     ], "UPSPickUpType", default="0")
-    IsUserDefault = fields.Boolean('IsUserDefault')
-    IsExpress = fields.Boolean('IsExpress')
-    IsResidential = fields.Boolean('IsResidential')
+    IsUserDefault = fields.Boolean('Is User Default')
+    IsExpress = fields.Boolean('Is Express')
+    IsResidential = fields.Boolean('Is Residential')
     State = fields.Char('State Code')
     Country = fields.Char('Country Code')
     FromParcelPro = fields.Boolean('From Parcel Pro')
     contact_created = fields.Boolean('Contact Created')
-    TotalContacts = fields.Char('TotalContacts')
     UserId = fields.Char('UserId')
-    # contact_type = fields.Selection([
-    #     ('ShipFrom', 'ShipFrom'),
-    #     ('ShipTo', 'ShipTo'),
-    # ], "Location Type", default="0")
-
+    Message = fields.Char('Message')
 
     _sql_constraints = [
         ('unique_ContactId', 'UNIQUE ("ContactId")', 'ContactId must be unique!'),
@@ -65,6 +60,3 @@ class ResPartner(models.Model):
         if self.state_id.country_id:
             self.country_id = self.state_id.country_id
         self.State = self.state_id.code
-
-
-
