@@ -41,9 +41,11 @@
             <field name="name">Parcel Exceptions Tree</field>
             <field name="model">parcel.pro.exceptions</field>
             <field name="arch" type="xml">
-                <tree string="Parcel Configuration" create='false' delete='false'>
+                <tree string="Parcel Configuration" create='false' >
                     <field name="name"/>
                     <field name="api_type"/>
+                    <field name="date"/>
+                    <field name="message"/>
                 </tree>
             </field>
         </record>

@@ -83,7 +83,7 @@ class ProductTemplate(models.Model):
     def create(self, vals):
         rel_vals = {}
         template = super(ProductTemplate, self).create(vals)
-        rel_vals['length'] = vals['length']
+        # rel_vals['length'] = vals['length']
         if rel_vals:
             template.write(rel_vals)
         return template

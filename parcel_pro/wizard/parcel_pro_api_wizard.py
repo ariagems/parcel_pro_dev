@@ -11,8 +11,8 @@ class ParcelProApiWizard(models.TransientModel):
     name = fields.Char('Name')
     date =fields.Date('Date', default=fields.Date.context_today,readonly=True)
     api_method = fields.Selection([
-        ('get', 'GET'),
-        ('post', 'POST')], "Method",default='get',required=True)
+        ('get', 'Fetch data from Parcel Pro'),
+        ('post', 'Generate Data on parcel pro')], "Method",default='get',required=True)
     api_type = fields.Selection([
         ('generate_session', 'Generate Session'),
         # ('getgenerate_multi_contacts', 'Get Multiple Contacts'),
@@ -23,7 +23,22 @@ class ParcelProApiWizard(models.TransientModel):
         ('get_carrier_services', 'Fetch Carrier Services'),
         ('get_package_types', 'Fetch Package Types'),
         ('zip_code_validator', 'Zip Code Validator'),
-    ], "Fetch Info from Parcel Pro",default="generate_session",required=True)
+    ], "Fetch Data",default="generate_session")
+
+    api_type_post = fields.Selection([
+        ('post_quotation', 'Generate Quotation'),
+        ('post_shipment', 'Generate Shipment'),
+    ], "Generate Data", default="post_quotation",)
+
+    sale_ids = fields.Many2many(
+        'sale.order', 'sale_parcel_wiz_rel',
+        'sale_id', 'wiz_id',
+        string='Sales')
+    picking_ids = fields.Many2many(
+        'stock.picking', 'picking_parcel_wiz_rel',
+        'picking_id', 'wiz_id',
+        string='Picking')
+
     create_contact = fields.Boolean('Create Contact In Database')
     ContactId = fields.Char('ContactId')
     QuoteId = fields.Char('QuoteId')
@@ -60,14 +75,28 @@ class ParcelProApiWizard(models.TransientModel):
                 result = parcel_config_rec.get_package_types(self.carrierservicecode,self.carriercode)
             elif self.api_type == 'zip_code_validator':
                 result = parcel_config_rec.get_zip_code_validator(self.zipcode)
-        view_id = parcel_pro_resp_rec.create({'name':self.api_type,'message':result})
-        return {'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'view_type': 'form',
-                'res_id': view_id.id,
-                'res_model': 'parcel.pro.response',
-                'target': 'self',
-                }
+            view_id = parcel_pro_resp_rec.create({'name':self.api_type,'message':result})
+            return {'type': 'ir.actions.act_window',
+                    'view_mode': 'form',
+                    'view_type': 'form',
+                    'res_id': view_id.id,
+                    'res_model': 'parcel.pro.response',
+                    'target': 'self',
+                    }
+        else:
+            if self.api_type_post == 'post_quotation':
+                # p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_quotation')])
+                # p_ids.unlink()
+                for order in self.sale_ids:
+                    print("=====",order)
+                    order.action_confirm()
+            elif self.api_type_post == 'post_shipment':
+                # p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_shipment')])
+                # p_ids.unlink()
+                for shipment in self.picking_ids:
+                    print("shipment..",shipment)
+                    shipment.button_validate()
+
 
 class ParcelProResponse(models.Model):
 

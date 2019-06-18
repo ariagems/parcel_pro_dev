@@ -12,9 +12,11 @@
                         </h4>
                     </group>
                     <group col="4">
-                        <field name="api_method" invisible="1"/>
-                        <field name="api_type" attrs="{'invisible': [('api_method', 'not in', ('get'))],'required': [('api_method', 'in', ('get'))]}"/>
                         <field name="date" />
+                        <field name="name" invisible="1"/>
+                        <field name="api_method" />
+                        <field name="api_type" attrs="{'invisible': [('api_method', 'not in', ('get'))],'required': [('api_method', 'in', ('get'))]}"/>
+                        <field name="api_type_post" attrs="{'invisible': [('api_method', 'not in', ('post'))],'required': [('api_method', 'in', ('post'))]}"/>
                         <field name="ContactId" attrs="{'invisible': [('api_type', 'not in', ('getgenerate_single_contact'))],'required': [('api_type', 'in', ('getgenerate_single_contact'))]}"/>
                         <field name="QuoteId" attrs="{'invisible': [('api_type', 'not in', ('get_high_value_queue'))],'required': [('api_type', 'in', ('get_high_value_queue'))]}"/>
                         <field name="ShipmentID" attrs="{'invisible': [('api_type', 'not in', ('get_shipment','get_shipment_label'))],'required': [('api_type', 'in', ('get_shipment','get_shipment_label'))]}"/>
@@ -24,6 +26,14 @@
                         <field name="carrierservicecode" attrs="{'invisible': [('api_type', 'not in', ('get_package_types'))],'required': [('api_type', 'in', ('get_package_types'))]}"/>
                         <field name="zipcode" attrs="{'invisible': [('api_type', 'not in', ('zip_code_validator'))],'required': [('api_type', 'in', ('zip_code_validator'))]}"/>
                     </group>
+                    <group  attrs="{'invisible': ['|',('api_method', 'not in', ('post')),('api_type_post', 'not in', ('post_quotation'))]}">
+                          <separator string="Sale" colspan="4" />
+                          <field domain="[('carrier_id.parcel_pro', '=', True),('QuoteIdCreated', '=', False),('state', '=', 'draft')]" name="sale_ids" nolabel="1" attrs="{'required': [('api_method', 'in', ('post')),('api_type_post', 'in', ('post_quotation'))]}" widget="many2many_tags" options="{'not_delete': True,'no_create': True}"/>
+                    </group>
+                    <group col="4" attrs="{'invisible': ['|',('api_type_post', 'not in', ('post_shipment')),('api_type_post', 'not in', ('post_shipment'))]}">
+                         <separator string="Shipment" colspan="4" />
+                         <field name="picking_ids" domain="[('ShipmentId_created', '=', False),('carrier_id.parcel_pro', '=', True),('QuoteId', '!=', False),('state', '!=', 'done')]" nolabel="1" attrs="{'required': [('api_method', 'in', ('post')),('api_type_post', 'in', ('post_shipment'))]}"   widget="many2many_tags" options="{'not_delete': True,'no_create': True}"/>
+                     </group>
                     <footer>
                         <button name="action_fetch_data"
                                 string="Generate" type="object"

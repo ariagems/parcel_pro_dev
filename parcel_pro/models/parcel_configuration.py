@@ -7,6 +7,8 @@ import json
 import datetime
 from datetime import date
 import base64
+import logging
+_logger = logging.getLogger(__name__)
 
 class ParcelConfiguration(models.Model):
 
@@ -33,10 +35,10 @@ class ParcelConfiguration(models.Model):
                 response = requests.post(url, data=param_data, headers=headers)
             print("===",response.status_code)
             if response.status_code in ( 201,200):
-                print("6666444444444")
                 result = json.loads(response.text)
         except ValidationError as e:
-            raise ValidationError(_('There is something wrong ! %s ') % e)
+            _logger.exception("Failed processing in response %s " % e)
+            # raise ValidationError(_('There is something wrong ! %s ') % e)
         return result
 
     def generate_session(self):
@@ -112,7 +114,6 @@ class ParcelConfiguration(models.Model):
         return result
 
     # Post Contact
-
     def post_contact(self,partner):
         session = self.get_session()
         print("============",partner.name)
@@ -164,41 +165,52 @@ class ParcelConfiguration(models.Model):
     # Post Quotation
 
     def post_quotation(self,order):
+
         p_excep = self.env['parcel.pro.exceptions']
         ShipDate = order.ShipDate
         current_date = date.today().strftime("%Y-%m-%d")
-
         if order.PickUpDate and order.PickUpDate > order.ShipDate:
             p_excep.create({'name':order.name,'api_type':'post_quotation','message':"Ship Date is less than Pick Up date."})
-            raise ValidationError(_('Ship Date should be greater than pickUp date.'))
+            return False
+            # raise ValidationError(_('Ship Date should be greater than pickUp date.'))
         if ShipDate < current_date:
             p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "ShipDate should be greater than Current Date !"})
-            raise ValidationError(_('ShipDate should be greater than Current Date !'))
+            return False
+            # raise ValidationError(_('ShipDate should be greater than Current Date !'))
         if order.partner_id.id == order.partner_shipping_id.id:
             p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "Ship From and Ship To should be different location"})
-            raise ValidationError(_('Ship From and Ship To should be different location.'))
+            return False
+            # raise ValidationError(_('Ship From and Ship To should be different location.'))
         if order.Weight <= 0:
             p_excep.create({'name': order.name, 'api_type': 'post_quotation','message': "Weight should be greater than 0"})
-            raise ValidationError(_('Weight should be greater than 0'))
+            return False
+            # raise ValidationError(_('Weight should be greater than 0'))
         session = self.get_session()
+
         CodAmount = 0
         if order.IsCod:
             CodAmount = order.amount_total
         InsuredValue = 0
         for line in order.order_line:
-            if line.product_id.type=='service' :
+            print("=======",line.product_id.name)
+            if line.product_id.type=='service' and line.product_id.name=='Insured':
                 InsuredValue = line.price_unit
                 break
-        # if InsuredValue <= 0:
-        #     raise ValidationError(_('InsuredValue should be greater than 0'))
-
-
-
-        print("=========",order.partner_id.ContactId)
+        if InsuredValue <= 0:
+            p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "Insured Value should be greater than 0"})
+            return False
+            # raise ValidationError(_('InsuredValue should be greater than 0'))
+        print("==== order.partner_id.ContactId =====",order.partner_id.ContactId)
         if not order.partner_id.ContactId:
-            raise ValidationError(_('ShipFrom ContactId not Found ! '))
+            p_excep.create(
+                {'name': order.name, 'api_type': 'post_quotation', 'message': "Ship From ContactId not Found"})
+            return False
+            # raise ValidationError(_('Ship From ContactId not Found ! '))
         if not order.partner_shipping_id.ContactId:
-            raise ValidationError(_('ShipTo ContactId not not Found ! '))
+            p_excep.create(
+                {'name': order.name, 'api_type': 'post_quotation', 'message': "Ship To ContactId not not Found"})
+            return False
+            # raise ValidationError(_('Ship To ContactId not not Found ! '))
         data_dict = {
                     "ShipmentId":"NOID",
                     "QuoteId":"",
@@ -230,7 +242,6 @@ class ParcelConfiguration(models.Model):
                       # "IsResidential":order.partner_shipping_id.IsResidential,
                       # "IsUserDefault":order.partner_shipping_id.IsUserDefault,
                       # "UPSPickUpType":order.partner_shipping_id.UPSPickUpType,
-
                       # "TotalContacts":"0"
                     },
                     "UpdateAddressBook":order.UpdateAddressBook,
@@ -315,12 +326,11 @@ class ParcelConfiguration(models.Model):
             IsHighValueShipmentPosted = False
             url = 'https://apibeta.parcelpro.com/v1/quote?sessionID=' + session
             result = self.get_response(url, "POST", data_dict)
-            # if not result.get("ShipFrom").get("ContactId") or result.get("ShipFrom").get("ContactId")=="NOID" :
-            #     raise ValidationError(_('ShipFrom ContactId not created on Parcel Pro '))
-            # if not result.get("ShipTo").get("ContactId") or result.get("ShipTo").get("ContactId")=="NOID":
-            #     raise ValidationError(_('ShipTo ContactId not created on Parcel Pro '))
             if not result.get("QuoteId"):
-                raise ValidationError(_('QuoteId not created on Parcel Pro '))
+                p_excep.create({'name': order.name, 'api_type': 'post_quotation',
+                                'message': "QuoteId not created on Parcel Pro !"})
+                return False
+                # raise ValidationError(_('QuoteId not created on Parcel Pro '))
             if result.get('IsHighValueShipment'):
                 url = 'https://apibeta.parcelpro.com/v1/highvalue/' + result.get("QuoteId") + '?sessionID=' + session
                 self.get_response(url, "POST", {})
@@ -345,7 +355,6 @@ class ParcelConfiguration(models.Model):
                                                   'estimator_id': estimator_rec.id})
             if total_shipping_charges > 0:
                 order._create_delivery_line(order.carrier_id, total_shipping_charges)
-
             order.write({'QuoteId': result.get("QuoteId"),
                          'QuoteIdCreated': True,
                          'IsHighValueShipment': IsHighValueShipment,
@@ -357,27 +366,37 @@ class ParcelConfiguration(models.Model):
     # Post Shipment
 
     def post_shipment(self, shipment):
+        print("$$$$",shipment)
         session = self.get_session()
         if session:
             data_dict = {}
             url = 'https://apibeta.parcelpro.com/v1/shipment/' + str(shipment.QuoteId) + '?sessionID=' + session
             result = self.get_response(url, "POST", data_dict)
+            p_excep = self.env['parcel.pro.exceptions']
             if not result.get("ShipmentId") or result.get("ShipmentId") == "NOID":
-                raise ValidationError(_('ShipmentID not created on Parcel Pro '))
+                p_excep.create({'name': shipment.name, 'api_type': 'post_shipment','message': "ShipmentID not created on Parcel Pro"})
+                return False
             LabelImage = self.get_shipment(result.get("ShipmentId"))
-            shipment.write({'ShipmentId': result.get("ShipmentId"),'carrier_tracking_ref': result.get("TrackingNumber")})
+            if not LabelImage:
+                p_excep.create({'name': shipment.name, 'api_type': 'post_shipment','message': "Label Image Not Generated."})
+                return False
+            shipment.write({'ShipmentId': result.get("ShipmentId"),'ShipmentId_created':True,'carrier_tracking_ref': result.get("TrackingNumber")})
             name = "Shipping Label" + result.get("ShipmentId")
             self.env['ir.attachment'].create(
-                {'res_model': "stock.picking", 'datas_fname': name, 'name':name  ,'datas': LabelImage.encode(),
+                {'res_model': "stock.picking", 'datas_fname': name, 'name':name,'datas': LabelImage.encode(),
                  'res_id': shipment.id})
-
+            return True
 
     # Get Shipment
 
     def get_shipment(self,ShipmentID):
+        p_excep = self.env['parcel.pro.exceptions']
         if not ShipmentID:
-            raise ValidationError(_('ShipmentID is required !'))
+            p_excep.create({'name': "Get Shipment Label", 'api_type': 'post_shipment', 'message': "Shipment ID not found."})
+            return False
+            # raise ValidationError(_('ShipmentID is required !'))
         session = self.get_session()
+        LabelImage = {}
         if session:
             url = 'https://apibeta.parcelpro.com/v1/shipment/' + str(ShipmentID) + '?sessionID=' + session
             print("url......",url)
@@ -386,9 +405,15 @@ class ParcelConfiguration(models.Model):
                 response = requests.request("GET", url, headers=headers)
                 result = response.text
                 from xml.etree.ElementTree import XML
+                print("result...",XML(result).find("LabelImage").text)
                 LabelImage = XML(result).find("LabelImage").text
+                if not LabelImage:
+                     return False
             except ValidationError as e:
-                raise ValidationError(_('There is something wrong ! %s ') % e)
+                _logger.exception("Failed processing %s " % e)
+                # p_excep.create({'name': "Get Shipment Label", 'api_type': 'post_shipment', 'message': "Somthing Wrong!"})
+                # raise ValidationError(_('There is something wrong ! %s ') % e)
+
         return LabelImage
 
     # Get Shipment Label
@@ -398,29 +423,25 @@ class ParcelConfiguration(models.Model):
             raise ValidationError(_('ShipmentId is required !'))
         session = self.get_session()
         if session:
-            data_dict = {}
             url = 'https://apibeta.parcelpro.com/v1/shipment/label?shipmentId=' + str(ShipmentId) + '&sessionID=' + session
-            print("====", url)
-
             try:
                 headers = {"content-type": "application/xml"}
                 response = requests.request("GET", url, headers=headers)
                 result = response.text
-                # from xml.etree.ElementTree import XML
-                # LabelImage = XML(result).find("LabelImage").text
             except ValidationError as e:
-                raise ValidationError(_('There is something wrong ! %s ') % e)
-
-            #
-            # result = self.get_response(url, "GET",data_dict)
-            # print("result", result)
+                _logger.exception("Failed processing in shipment label %s " % e)
+                # raise ValidationError(_('There is something wrong ! %s ') % e)
         return result
 
     # High Value Queue
 
     def get_high_value_queue(self,QuoteId):
+        p_excep = self.env['parcel.pro.exceptions']
         if not QuoteId:
-            raise ValidationError(_('QuoteId is required !'))
+            p_excep.create(
+                {'name': "get_high_value_queue", 'api_type': 'post_shipment', 'message': "QuoteId not found"})
+            pass
+            # raise ValidationError(_('QuoteId is required !'))
         session = self.get_session()
         if session:
             url = 'https://apibeta.parcelpro.com/v1/highvalue/' + str(QuoteId) + '?sessionID=' + session
@@ -506,7 +527,10 @@ class ParcelProExceptions(models.Model):
     name = fields.Char('Name')
     api_type = fields.Selection([
         ('post_quotation', 'Post Quotation'),
-        ('post_shipment', 'Fetch Carrier Services')], "API")
+        ('post_shipment', 'Post Shipment')], "API")
+    source = fields.Selection([
+        ('auto', 'Auto'),
+        ('manual', 'Manual')], "Source")
     message = fields.Text('Exception')
     date = fields.Date('Date', default=fields.Date.context_today, readonly=True)
 

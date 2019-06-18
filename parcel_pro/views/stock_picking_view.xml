@@ -21,13 +21,12 @@
 
                             <field name='QuoteId' readonly="1"/>
                             <field name='ShipmentId' readonly="1"/>
-                            <field name='TrackingNumber' readonly="1"/>
-                            <field name='IsHighValueShipment' readonly="1"/>
                             <field name='IsHighValueShipmentPosted' readonly="1"/>
                             <field name='IsHighValueShipment_Approved' readonly="1"/>
                             <field name='IsCod' readonly="1"/>
-                            <field name='ParcelPro' readonly="1"/>
-                            <field name='ShipmentId_created' readonly="1"/>
+                            <field name='IsHighValueShipment' invisible="1"/>
+                            <field name='ParcelPro' invisible="1"/>
+                            <field name='ShipmentId_created' invisible="1"/>
                         </group>
                         </page>
 

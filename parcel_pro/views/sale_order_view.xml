@@ -13,18 +13,15 @@
                             <field name='ServiceCode' domain="[('CarrierCode', '=', CarrierCode)]"  attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='PackageCode' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='ShipDate' attrs="{'invisible': [('ParcelPro', '!=', True)],'required': [('ParcelPro', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
-
                             <field name='QuoteId' readonly="1"/>
-<!--                            <field name='ShipmentId' readonly="1"/>-->
                             <field name='ReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='CustomerReferenceNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-<!--                            <field name='TrackingNumber' attrs="{'readonly': [('state', '!=', 'draft')]}"/>-->
                             <field name='Height' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='Width' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='Length' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name='Weight' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
 
-                            <field name='QuoteIdCreated' readonly="1"/>
+                            <field name='QuoteIdCreated' invisible="1"/>
                             <field name='ParcelPro' invisible="1"/>
                             <field name='ShipToResidential' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
 
