@@ -40,7 +40,6 @@ class StockPicking(models.Model):
             p_excep = self.env['parcel.pro.exceptions']
             if self.IsHighValueShipment and not self.IsHighValueShipment_Approved:
                 result = self.env['parcel.configuration'].get_high_value_queue(self.QuoteId)
-                print("result..",result)
                 if not result.get('Status')!= 2:
                     p_excep.create({'name': self.name, 'api_type': 'post_shipment', 'message': "High Value Queue not Approved by parcel pro"})
                     return False
@@ -58,14 +57,12 @@ class StockPicking(models.Model):
     def process_create_shipment(self, ids=None):
         filters = [('ShipmentId_created', '=', False),('carrier_id.parcel_pro', '=', True),('QuoteId', '!=', False),('state', '!=', 'done')]
         shipment_rec = self.search(filters)
-        print("==shipment_rec=====", shipment_rec)
         res = None
         if shipment_rec:
             try:
                 p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_shipment')])
                 p_ids.unlink()
                 for shipment in shipment_rec:
-                    print("@@ order @@", shipment)
                     shipment.button_validate()
                     # self.env['parcel.configuration'].post_quotation(order)
             except Exception as e:

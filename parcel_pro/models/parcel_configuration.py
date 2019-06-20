@@ -29,11 +29,7 @@ class ParcelConfiguration(models.Model):
                 response = requests.request(type, url, headers=headers)
             elif type =="POST":
                 param_data = json.dumps(data_dict)
-                print("Parameters in convert json.......",param_data)
-                print("url..",url)
-                print("===headers======",headers)
                 response = requests.post(url, data=param_data, headers=headers)
-            print("===",response.status_code)
             if response.status_code in ( 201,200):
                 result = json.loads(response.text)
         except ValidationError as e:
@@ -116,7 +112,6 @@ class ParcelConfiguration(models.Model):
     # Post Contact
     def post_contact(self,partner):
         session = self.get_session()
-        print("============",partner.name)
         data_dict_partner = {
             "ApartmentSuite": partner.ApartmentSuite,
             "City": partner.city,
@@ -137,7 +132,6 @@ class ParcelConfiguration(models.Model):
             "Zip": partner.zip,
             "ContactType":partner.ContactType
         }
-        print("++++++",partner.ContactType,type(partner.ContactType))
         if not partner.ContactType or ( partner.ContactType != '3' and partner.ContactType != '11' ):
             raise ValidationError(_('Contact Type should be selected as Location or Addressbook'))
         url = 'https://apibeta.parcelpro.com/v1/location?sessionID=' + str(session)
@@ -151,7 +145,6 @@ class ParcelConfiguration(models.Model):
             # else:
             url = 'https://apibeta.parcelpro.com/v1/addressbook?sessionID=' + str(session)
         result = self.get_response(url, "POST", data_dict_partner)
-        print("result..............",result)
         if not result.get("ContactId") or result.get("ContactId")=="NOID" :
             raise ValidationError(_('ContactId not created on Parcel Pro'))
         if result.get('ApartmentSuite')=='false':
@@ -192,7 +185,6 @@ class ParcelConfiguration(models.Model):
             CodAmount = order.amount_total
         InsuredValue = 0
         for line in order.order_line:
-            print("=======",line.product_id.name)
             if line.product_id.type=='service' and line.product_id.name=='Insured':
                 InsuredValue = line.price_unit
                 break
@@ -200,7 +192,6 @@ class ParcelConfiguration(models.Model):
             p_excep.create({'name': order.name, 'api_type': 'post_quotation', 'message': "Insured Value should be greater than 0"})
             return False
             # raise ValidationError(_('InsuredValue should be greater than 0'))
-        print("==== order.partner_id.ContactId =====",order.partner_id.ContactId)
         if not order.partner_id.ContactId:
             p_excep.create(
                 {'name': order.name, 'api_type': 'post_quotation', 'message': "Ship From ContactId not Found"})
@@ -366,7 +357,6 @@ class ParcelConfiguration(models.Model):
     # Post Shipment
 
     def post_shipment(self, shipment):
-        print("$$$$",shipment)
         session = self.get_session()
         if session:
             data_dict = {}
@@ -399,13 +389,11 @@ class ParcelConfiguration(models.Model):
         LabelImage = {}
         if session:
             url = 'https://apibeta.parcelpro.com/v1/shipment/' + str(ShipmentID) + '?sessionID=' + session
-            print("url......",url)
             try:
                 headers = {"content-type": "application/xml"}
                 response = requests.request("GET", url, headers=headers)
                 result = response.text
                 from xml.etree.ElementTree import XML
-                print("result...",XML(result).find("LabelImage").text)
                 LabelImage = XML(result).find("LabelImage").text
                 if not LabelImage:
                      return False
@@ -464,7 +452,6 @@ class ParcelConfiguration(models.Model):
                 result['state'] = 'Cancelled'
             else:
                 result['state'] = 'None'
-            print("result", result)
         return result
 
 
@@ -474,13 +461,9 @@ class ParcelConfiguration(models.Model):
         session = self.get_session()
         if session:
             url = 'https://apibeta.parcelpro.com/v1/carrierservices?domesticonly=' + str(domesticonly) + '&carriercode='+ str(carriercode) + '&sessionID=' + session
-            print("====", url)
             result = self.get_response(url, "GET", {})
-            print("result", result)
             carrier_service_rec = self.env["carrier.services"]
             for r in result:
-                print("======",r)
-                print("========",r.get('CarrierCode'))
                 carrier_service_id = carrier_service_rec.search([('name','=',r.get('ServiceCode')),('CarrierCode','=',r.get('CarrierCode'))])
                 if not carrier_service_id:
                     r['name'] = r.get('ServiceCode')
@@ -494,10 +477,7 @@ class ParcelConfiguration(models.Model):
         session = self.get_session()
         if session:
             url = 'https://apibeta.parcelpro.com/v1/packagetypes?carrierservicecode=' + str(carrierservicecode) + '&carriercode='+ str(carriercode) + '&sessionID=' + session
-            print("====", url)
             result = self.get_response(url, "GET", {})
-            print("result", result)
-            # {'PackageTypeDesc': 'LARGE FEDEX BOX', 'PackageTypeCode': 'LARGE BOX', 'CarrierCode': 0,#  'CarrierServiceCode': '01-DOM'}
             package_service_rec = self.env["package.services"]
             for r in result:
                 package_service_id = package_service_rec.search(
@@ -515,9 +495,7 @@ class ParcelConfiguration(models.Model):
         if session:
             # https://apibeta.parcelpro.com/v1/zipcodevalidator?zipcode=90501&sessionID=cbkrzrwnbbzuqbrmsgeifrgg
             url = 'https://apibeta.parcelpro.com/v1/zipcodevalidator?zipcode=' + str(zipcode)  + '&sessionID=' + session
-            print("====", url)
             result = self.get_response(url, "GET", {})
-            print("result", result)
         return result
 
 class ParcelProExceptions(models.Model):

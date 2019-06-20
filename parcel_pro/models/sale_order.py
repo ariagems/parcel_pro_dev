@@ -114,19 +114,16 @@ class SaleOrder(models.Model):
         p_excep = self.env['parcel.pro.exceptions']
         for order in self:
             if order.carrier_id.parcel_pro == True:
-                print("In actio confirm....",order)
                 if not self.order_line:
                     p_excep.create({'name': order.name, 'api_type': 'post_quotation',
                                     'message': "There should be at least one product in line."})
                     return False
                     # raise ValidationError(_('There should be at least one product in line.'))
                 post_quotation = self.env['parcel.configuration'].post_quotation(order)
-                print("Post Quote.................",post_quotation)
                 if not post_quotation:
                     return False
                 res = super(SaleOrder, self).action_confirm()
                 for pick in order.picking_ids:
-                    print("pick........",pick)
                     pick.write({'QuoteId':order.QuoteId,'ParcelPro':True,'IsHighValueShipment':order.IsHighValueShipment,
                     'IsHighValueShipmentPosted':order.IsHighValueShipmentPosted,'IsCod':order.IsCod,'CarrierCode':order.CarrierCode,
                       'ServiceCode':order.ServiceCode.id,'PackageCode':order.PackageCode.id,'ShipDate':order.ShipDate,
@@ -139,14 +136,12 @@ class SaleOrder(models.Model):
     def process_create_quotation(self, ids=None):
         filters = [('state', '=', 'draft'),('QuoteIdCreated', '=', False),('carrier_id.parcel_pro', '=', True)]
         order_rec = self.search(filters)
-        print("=========== order_rec ============================",order_rec)
         res = None
         if order_rec:
             try:
                 p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_quotation')])
                 p_ids.unlink()
                 for order in order_rec:
-                    print("@@ process_create_quotation order @@@@@@@@@@@@@@@@@@@.............",order)
                     order.action_confirm()
                     # self.env['parcel.configuration'].post_quotation(order)
             except Exception as e:

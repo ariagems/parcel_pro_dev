@@ -88,13 +88,11 @@ class ParcelProApiWizard(models.TransientModel):
                 # p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_quotation')])
                 # p_ids.unlink()
                 for order in self.sale_ids:
-                    print("=====",order)
                     order.action_confirm()
             elif self.api_type_post == 'post_shipment':
                 # p_ids = self.env['parcel.pro.exceptions'].search([('api_type', '=', 'post_shipment')])
                 # p_ids.unlink()
                 for shipment in self.picking_ids:
-                    print("shipment..",shipment)
                     shipment.button_validate()
 
 
